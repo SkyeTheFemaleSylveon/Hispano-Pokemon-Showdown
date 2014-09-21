@@ -285,28 +285,28 @@ var commands = exports.commands = {
 							"<table>" +
 								"<tr>" +
 									"<td><a href=" + path + 628 + ">FC CAMULOS: Normal</a></td>" +
-									"<td><a href=" + path + 637 + ">FC JOMA: Hielo</a></td>" +
+									"<td><a href=" + path + 637 + ">Próximamente: Hielo</a></td>" +
 									"<td><a href=" + path + 629 + ">FC ADRIELANDRO: Agua</a></td>" +
 								"</tr>" +
 								"<tr>" +
-									"<td><a href=" + path + 563 + ">(ABT) Ryuga: Lucha</a></td>" +
-									"<td><a href=" + path + 648 + ">AlyssaSoraya: Bicho</a></td>" +
-									"<td><a href=" + path + 000 + ">Disponible: Roca</a></td>" +
+									"<td><a href=" + path + 563 + ">Próximamente: Lucha</a></td>" +
+									"<td><a href=" + path + 648 + ">Próximamente: Bicho</a></td>" +
+									"<td><a href=" + path + 000 + ">Próximamente: Roca</a></td>" +
 								"</tr>" +
 								"<tr>" +
-									"<td><a href=" + path + 000 + ">Disponible: Hada</a></td>" +
-									"<td><a href=" + path + 570 + ">Miranda L.: Volador</a></td>" +
-									"<td><a href=" + path + 633 + ">davidness: Fantasma</a></td>" +
+									"<td><a href=" + path + 000 + ">Próximamente: Hada</a></td>" +
+									"<td><a href=" + path + 570 + ">Próximamente: Volador</a></td>" +
+									"<td><a href=" + path + 633 + ">Próximamente: Fantasma</a></td>" +
 								"</tr>" +
 								"<tr>" +
-									"<td><a href=" + path + 539 + ">Sidaaaaa: Tierra</a></td>" +
-									"<td><a href=" + path + 647 + "knight of war: Siniestro</a></td>" +
-									"<td><a href=" + path + 000 + ">Disponible: Veneno</a></td>" +
+									"<td><a href=" + path + 539 + ">Próximamente: Tierra</a></td>" +
+									"<td><a href=" + path + 647 + ">Próximamente: Siniestro</a></td>" +
+									"<td><a href=" + path + 000 + ">Próximamente: Veneno</a></td>" +
 								"</tr>" +
 								"<tr>" +
-									"<td><a href=" + path + 000 + ">Disponible: Fuego</a></td>" +
-									"<td><a href=" + path + 000 + ">Kruzes: Eléctrico</a></td>" +
-									"<td><a href=" + path + 000 + ">Disponible: Dragón</a></td>" +
+									"<td><a href=" + path + 000 + ">Próximamente: Fuego</a></td>" +
+									"<td><a href=" + path + 000 + ">Próximamente: Eléctrico</a></td>" +
+									"<td><a href=" + path + 000 + ">Próximamente: Dragón</a></td>" +
 								"</tr>" +
 							"</table>" +
 					"</div>" +
