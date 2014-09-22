@@ -40,12 +40,7 @@ exports.commands = {
 		this.sendReplyBox('<div class="infobox"><center><img src="http://s7.postimg.org/cwkpinh5n/logogthfull.png" height="170" width="250"><br><b>MirÃ¡ las Ãºltimas novedades del <a href="htthttp://pokemon-hispano.comxa.com/forumdisplay.php?fid=66://pokemon-hispano.comxa.com/showteam.php" target="_BLANK">GRAN TOUR HISPANO!</a>');
 	},
 
-	posho: function (target, room, user) {
-		this.add('Posho eres un ' +target);
-		user.popup("<font color=\"red\">HAZ SIDO KICKEADO POR EL PODER DE POSHO POR DECIRLE ' </font>" +target);
-		user.disconnectAll();
-	},
-
+	
 	rule: 'reglas',
 	reglas: function (target, room, user) {
 		if (!this.canBroadcast()) return;
