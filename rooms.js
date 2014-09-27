@@ -20,6 +20,8 @@ var Rooms = module.exports = getRoom;
 
 var rooms = Rooms.rooms = Object.create(null);
 
+var aliases = {};
+
 var Room = (function () {
 	function Room(roomid, title) {
 		this.id = roomid;
@@ -143,6 +145,11 @@ var GlobalRoom = (function () {
 			var id = toId(this.chatRoomData[i].title);
 			console.log("NEW CHATROOM: " + id);
 			var room = Rooms.createChatRoom(id, this.chatRoomData[i].title, this.chatRoomData[i]);
+			if (room.aliases) {
+				for (var a = 0; a < room.aliases.length; a++) {
+					aliases[room.aliases[a]] = room;
+				}
+			}
 			this.chatRooms.push(room);
 			if (room.autojoin) this.autojoin.push(id);
 			if (room.staffAutojoin) this.staffAutojoin.push(id);
@@ -584,7 +591,6 @@ var GlobalRoom = (function () {
 		room = Rooms.createBattle(room, format, p1, p2, parent, rated);
 		return room;
 	};
-	GlobalRoom.prototype.removeRoom = function (room) {};
 	GlobalRoom.prototype.chat = function (user, message, connection) {
 		if (rooms.lobby) return rooms.lobby.chat(user, message, connection);
 		message = CommandParser.parse(message, this, user, connection);
@@ -1154,8 +1160,6 @@ var BattleRoom = (function () {
 		}
 		this.users = null;
 
-		rooms.global.removeRoom(this.id);
-
 		// deallocate children and get rid of references to them
 		if (this.battle) {
 			this.battle.destroy();
@@ -1166,6 +1170,10 @@ var BattleRoom = (function () {
 			clearTimeout(this.resetTimer);
 		}
 		this.resetTimer = null;
+		if (this.expireTimer) {
+			clearTimeout(this.expireTimer);
+		}
+		this.expireTimer = null;
 
 		// get rid of some possibly-circular references
 		delete rooms[this.id];
@@ -1500,3 +1508,4 @@ Rooms.ChatRoom = ChatRoom;
 
 Rooms.global = rooms.global;
 Rooms.lobby = rooms.lobby;
+Rooms.aliases = aliases;
