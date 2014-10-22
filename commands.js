@@ -61,6 +61,11 @@ var commands = exports.commands = {
 		user.resetName();
 	},
 
+	requesthelp: 'report',
+	report: function (target, room, user) {
+		this.sendReply("Use the Help room.");
+	},
+
 	r: 'reply',
 	reply: function (target, room, user) {
 		if (!target) return this.parse('/help reply');
@@ -101,10 +106,10 @@ var commands = exports.commands = {
 			}
 		}
 
-		if (user.locked && !targetUser.can('lock', user)) {
-			return this.popupReply("You can only private message members of the moderation team (users marked by " + Users.getGroupsThatCan('lock', user).join(", ") + ") when locked.");
+		if (user.locked && !targetUser.can('lock')) {
+			return this.popupReply("You can only private message members of the moderation team (users marked by " + Users.getGroupsThatCan('lock').join(", ") + ") when locked.");
 		}
-		if (targetUser.locked && !user.can('lock', targetUser)) {
+		if (targetUser.locked && !user.can('lock')) {
 			return this.popupReply("This user is locked and cannot PM.");
 		}
 		if (targetUser.ignorePMs && !user.can('lock')) {
@@ -211,7 +216,7 @@ var commands = exports.commands = {
 
 	modjoin: function (target, room, user) {
 		if (!this.can('privateroom', room)) return;
-		if (target === 'off') {
+		if (target === 'off' || target === 'false') {
 			delete room.modjoin;
 			this.addModCommand("" + user.name + " turned off modjoin.");
 			if (room.chatRoomData) {
@@ -219,8 +224,16 @@ var commands = exports.commands = {
 				Rooms.global.writeChatRoomData();
 			}
 		} else {
-			room.modjoin = true;
-			this.addModCommand("" + user.name + " turned on modjoin.");
+			if (Config.groups[room.auth ? room.type + 'Room' : 'global'][target]) {
+				room.modjoin = target;
+				this.addModCommand("" + user.name + " set modjoin to " + target + ".");
+			} else if (target === 'on' || target === 'true' || !target) {
+				room.modjoin = true;
+				this.addModCommand("" + user.name + " turned on modjoin.");
+			} else {
+				this.sendReply("Unrecognized modjoin setting.");
+				return false;
+			}
 			if (room.chatRoomData) {
 				room.chatRoomData.modjoin = true;
 				Rooms.global.writeChatRoomData();
@@ -433,6 +446,48 @@ var commands = exports.commands = {
 		connection.popup(buffer.join("\n\n"));
 	},
 
+	userauth: function (target, room, user, connection) {
+		var targetId = toId(target) || user.userid;
+		var targetUser = Users.getExact(targetId);
+		var targetUsername = (targetUser ? targetUser.name : target);
+
+		var buffer = [];
+		var innerBuffer = [];
+		var group = Users.usergroups[targetId];
+		if (group) {
+			buffer.push('Global auth: ' + group.charAt(0));
+		}
+		for (var i = 0; i < Rooms.global.chatRooms.length; i++) {
+			var curRoom = Rooms.global.chatRooms[i];
+			if (!curRoom.auth || curRoom.isPrivate) continue;
+			group = curRoom.auth[targetId];
+			if (!group) continue;
+			innerBuffer.push(group + curRoom.id);
+		}
+		if (innerBuffer.length) {
+			buffer.push('Room auth: ' + innerBuffer.join(', '));
+		}
+		if (targetId === user.id || user.can('makeroom')) {
+			innerBuffer = [];
+			for (var i = 0; i < Rooms.global.chatRooms.length; i++) {
+				var curRoom = Rooms.global.chatRooms[i];
+				if (!curRoom.auth || !curRoom.isPrivate) continue;
+				var auth = curRoom.auth[targetId];
+				if (!auth) continue;
+				innerBuffer.push(auth + curRoom.id);
+			}
+			if (innerBuffer.length) {
+				buffer.push('Private room auth: ' + innerBuffer.join(', '));
+			}
+		}
+		if (!buffer.length) {
+			buffer.push("No global or room auth.");
+		}
+
+		buffer.unshift("" + targetUsername + " user auth:");
+		connection.popup(buffer.join("\n\n"));
+	},
+
 	rb: 'roomban',
 	roomban: function (target, room, user, connection) {
 		if (!target) return this.parse('/help roomban');
@@ -524,7 +579,8 @@ var commands = exports.commands = {
 				if (targetRoom.auth) {
 					userGroup = targetRoom.auth[user.userid] || Config.groups.default[room.type + 'Room'];
 				}
-				if (targetRoom.modchat && Config.groups.bySymbol[userGroup].rank < Config.groups.bySymbol[targetRoom.modchat].rank) {
+				var modjoinLevel = targetRoom.modjoin !== true ? targetRoom.modjoin : targetRoom.modchat;
+				if (modjoinLevel && Config.groups.bySymbol[userGroup].rank < Config.groups.bySymbol[modjoinLevel].rank) {
 					return connection.sendTo(target, "|noinit|nonexistent|The room '" + target + "' does not exist.");
 				}
 			}
@@ -562,6 +618,9 @@ var commands = exports.commands = {
 		if (!targetUser || !targetUser.connected) return this.sendReply("User '" + this.targetUsername + "' does not exist.");
 		if (room.isPrivate && room.auth) {
 			return this.sendReply("You can't warn here: This is a privately-owned room not subject to global rules.");
+		}
+		if (!Rooms.rooms[room.id].users[targetUser.userid]) {
+			return this.sendReply("User " + this.targetUsername + " is not in the room " + room.id + ".");
 		}
 		if (target.length > MAX_REASON_LENGTH) {
 			return this.sendReply("The reason is too long. It cannot exceed " + MAX_REASON_LENGTH + " characters.");
@@ -864,6 +923,8 @@ var commands = exports.commands = {
 		return this.privateModCommand("(" + user.name + " notes: " + target + ")");
 	},
 
+	globaldemote: 'promote',
+	globalpromote: 'promote',
 	demote: 'promote',
 	promote: function (target, room, user, connection, cmd) {
 		if (!target) return this.parse('/help promote');
@@ -932,6 +993,11 @@ var commands = exports.commands = {
 
 	deauth: function (target, room, user) {
 		return this.parse('/demote ' + target + ', deauth');
+	},
+
+	deroomauth: 'roomdeauth',
+	roomdeauth: function (target, room, user) {
+		return this.parse('/roomdemote ' + target + ', deauth');
 	},
 
 	modchat: function (target, room, user) {
@@ -1059,7 +1125,7 @@ var commands = exports.commands = {
 		this.privateModCommand("(" + entry + ")");
 		Rooms.global.cancelSearch(targetUser);
 		targetUser.resetName();
-		targetUser.send("|nametaken||" + user.name + " has forced you to change your name. " + target);
+		targetUser.send("|nametaken||" + user.name + " considers your name inappropriate" + (reason ? ": " + reason : "."));
 	},
 
 	modlog: function (target, room, user, connection) {
@@ -1757,6 +1823,7 @@ var commands = exports.commands = {
 	away: 'blockchallenges',
 	idle: 'blockchallenges',
 	blockchallenges: function (target, room, user) {
+		if (user.blockChallenges) return this.sendReply("You are already blocking challenges!");
 		user.blockChallenges = true;
 		this.sendReply("You are now blocking all incoming challenge requests.");
 	},
